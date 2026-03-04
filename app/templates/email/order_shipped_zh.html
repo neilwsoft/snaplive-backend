@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>商品已发货 - {{ order_number }}</title>
+    <style>
+        body { margin: 0; padding: 0; font-family: 'Microsoft YaHei', '微软雅黑', 'PingFang SC', sans-serif; background-color: #f5f5f5; color: #333333; }
+        .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; }
+        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px 20px; text-align: center; }
+        .header h1 { color: #ffffff; margin: 0; font-size: 28px; font-weight: 700; }
+        .header p { color: #f0f0f0; margin: 10px 0 0 0; font-size: 14px; }
+        .content { padding: 40px 30px; }
+        .greeting { font-size: 18px; font-weight: 600; color: #333333; margin-bottom: 20px; }
+        .message { font-size: 15px; line-height: 1.6; color: #555555; margin-bottom: 30px; }
+        .order-info { background-color: #f8f9fa; border-radius: 8px; padding: 20px; margin-bottom: 30px; }
+        .order-info h2 { font-size: 16px; font-weight: 600; color: #333333; margin: 0 0 15px 0; }
+        .info-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #e0e0e0; }
+        .info-row:last-child { border-bottom: none; }
+        .info-label { font-weight: 600; color: #666666; }
+        .info-value { color: #333333; text-align: right; }
+        .button { display: inline-block; padding: 14px 32px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #ffffff !important; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 15px; text-align: center; margin: 20px 0; }
+        .footer { background-color: #f8f9fa; padding: 30px; text-align: center; border-top: 1px solid #e0e0e0; }
+        .footer p { margin: 5px 0; font-size: 13px; color: #888888; }
+        .footer a { color: #667eea; text-decoration: none; }
+        .highlight { background-color: #e8f4fd; padding: 15px; border-left: 4px solid #667eea; margin: 20px 0; border-radius: 4px; }
+        .tracking-box { background-color: #e8f4fd; border: 2px solid #667eea; border-radius: 8px; padding: 25px; margin: 25px 0; text-align: center; }
+        .tracking-label { font-size: 14px; color: #666666; margin-bottom: 10px; }
+        .tracking-number { font-size: 24px; font-weight: 700; color: #667eea; margin: 10px 0; letter-spacing: 2px; }
+        .items-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+        .items-table th { background-color: #f8f9fa; padding: 12px; text-align: left; font-weight: 600; color: #333333; border-bottom: 2px solid #e0e0e0; font-size: 14px; }
+        .items-table td { padding: 12px; border-bottom: 1px solid #f0f0f0; font-size: 14px; }
+        .address-box { background-color: #fff8e6; border: 1px solid #ffc107; border-radius: 6px; padding: 15px; margin: 20px 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚚 商品已发货</h1>
+            <p>可以追踪物流</p>
+        </div>
+
+        <div class="content">
+            <div class="greeting">
+                您好，{{ buyer_name }}！
+            </div>
+
+            <div class="highlight">
+                <strong>订单号 {{ order_number }} 的商品正在配送中！</strong><br>
+                您可以使用下方物流单号查询配送状态。
+            </div>
+
+            <!-- Tracking Information -->
+            {% if tracking_number %}
+            <div class="tracking-box">
+                <div class="tracking-label">物流单号</div>
+                <div class="tracking-number">{{ tracking_number }}</div>
+                {% if carrier %}
+                <div style="margin-top: 10px; color: #666666; font-size: 14px;">
+                    快递公司：<strong>{{ carrier }}</strong>
+                </div>
+                {% endif %}
+                {% if estimated_delivery_date %}
+                <div style="margin-top: 10px; color: #666666; font-size: 14px;">
+                    预计送达：<strong>{{ estimated_delivery_date.strftime('%Y年%m月%d日') }}</strong>
+                </div>
+                {% endif %}
+            </div>
+
+            <div style="text-align: center;">
+                <a href="#" class="button">追踪物流</a>
+            </div>
+            {% endif %}
+
+            <!-- Order Items -->
+            <div class="order-info">
+                <h2>📦 配送商品</h2>
+                <table class="items-table">
+                    <thead>
+                        <tr>
+                            <th>商品名称</th>
+                            <th style="text-align: center;">数量</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in items %}
+                        <tr>
+                            <td>{{ item.product_name.zh or item.product_name.ko }}</td>
+                            <td style="text-align: center;">{{ item.quantity }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Shipping Address -->
+            <div class="address-box">
+                <h2 style="font-size: 16px; font-weight: 600; margin: 0 0 10px 0;">📍 收货地址</h2>
+                <p style="margin: 5px 0;"><strong>{{ shipping_address.recipient_name }}</strong> ({{ shipping_address.phone }})</p>
+                <p style="margin: 5px 0;">{{ shipping_address.address_line1 }}</p>
+                {% if shipping_address.address_line2 %}
+                <p style="margin: 5px 0;">{{ shipping_address.address_line2 }}</p>
+                {% endif %}
+                <p style="margin: 5px 0;">{{ shipping_address.city }}, {{ shipping_address.province }} {{ shipping_address.postal_code }}</p>
+            </div>
+
+            <div class="message" style="font-size: 13px; color: #888888; background-color: #f8f9fa; padding: 15px; border-radius: 6px;">
+                <p style="margin: 5px 0;"><strong>💡 配送提示</strong></p>
+                <p style="margin: 5px 0;">• 配送时间为工作日3-7天</p>
+                <p style="margin: 5px 0;">• 请再次确认收货地址是否正确</p>
+                <p style="margin: 5px 0;">• 如无人签收，快递员可能会放置在安全位置</p>
+                <p style="margin: 5px 0;">• 收货后如有问题请联系客服</p>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p><strong>SnapLive</strong></p>
+            <p>连接韩国与中国的直播电商平台</p>
+            <p>客户服务：support@snaplive.com | 电话：+86-10-1234-5678</p>
+            <p style="margin-top: 15px;">
+                <a href="#">查询订单</a> | <a href="#">客户服务</a> | <a href="#">服务条款</a>
+            </p>
+            <p style="margin-top: 15px; font-size: 11px; color: #999999;">
+                此邮件为系统自动发送，请勿直接回复。如有疑问请联系客户服务。<br>
+                © 2025 SnapLive. 保留所有权利。
+            </p>
+        </div>
+    </div>
+</body>
+</html>

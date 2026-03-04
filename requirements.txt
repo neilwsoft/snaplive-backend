@@ -1,0 +1,22 @@
+fastapi==0.115.5
+uvicorn[standard]==0.32.1
+motor==3.6.0
+pydantic==2.10.2
+pydantic-settings==2.6.1
+python-dotenv==1.0.1
+python-multipart==0.0.18
+bcrypt==4.2.1
+python-jose[cryptography]==3.3.0
+email-validator==2.1.1
+jinja2==3.1.4
+qrcode[pil]==8.0
+reportlab==4.2.5
+pillow==11.0.0
+livekit==0.17.5
+livekit-api==0.7.0
+
+# Object Detection (Grounding DINO)
+transformers>=4.36.0
+torch>=2.0.0
+pillow>=10.0.0
+timm>=0.9.0

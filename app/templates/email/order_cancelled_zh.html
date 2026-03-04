@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>订单已取消 - {{ order_number }}</title>
+    <style>
+        body { margin: 0; padding: 0; font-family: 'Microsoft YaHei', '微软雅黑', 'PingFang SC', sans-serif; background-color: #f5f5f5; color: #333333; }
+        .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; }
+        .header { background: linear-gradient(135deg, #dc3545 0%, #c82333 100%); padding: 30px 20px; text-align: center; }
+        .header h1 { color: #ffffff; margin: 0; font-size: 28px; font-weight: 700; }
+        .header p { color: #f0f0f0; margin: 10px 0 0 0; font-size: 14px; }
+        .content { padding: 40px 30px; }
+        .greeting { font-size: 18px; font-weight: 600; color: #333333; margin-bottom: 20px; }
+        .message { font-size: 15px; line-height: 1.6; color: #555555; margin-bottom: 30px; }
+        .order-info { background-color: #f8f9fa; border-radius: 8px; padding: 20px; margin-bottom: 30px; }
+        .order-info h2 { font-size: 16px; font-weight: 600; color: #333333; margin: 0 0 15px 0; }
+        .info-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #e0e0e0; }
+        .info-row:last-child { border-bottom: none; }
+        .info-label { font-weight: 600; color: #666666; }
+        .info-value { color: #333333; text-align: right; }
+        .button { display: inline-block; padding: 14px 32px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #ffffff !important; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 15px; text-align: center; margin: 20px 0; }
+        .footer { background-color: #f8f9fa; padding: 30px; text-align: center; border-top: 1px solid #e0e0e0; }
+        .footer p { margin: 5px 0; font-size: 13px; color: #888888; }
+        .footer a { color: #667eea; text-decoration: none; }
+        .warning-box { background-color: #f8d7da; border: 2px solid #dc3545; border-radius: 8px; padding: 20px; margin: 20px 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>订单已取消</h1>
+            <p>订单取消通知</p>
+        </div>
+
+        <div class="content">
+            <div class="greeting">
+                您好，{{ buyer_name }}。
+            </div>
+
+            <div class="warning-box">
+                <strong style="font-size: 16px;">订单号 {{ order_number }} 已被取消</strong>
+            </div>
+
+            <div class="message">
+                您的订单已取消。<br>
+                已支付的款项将在3-5个工作日内退回。
+            </div>
+
+            <div class="order-info">
+                <h2>已取消订单信息</h2>
+                <div class="info-row">
+                    <span class="info-label">订单号</span>
+                    <span class="info-value">{{ order_number }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">总金额</span>
+                    <span class="info-value">¥{{ "%.2f"|format(total) }}</span>
+                </div>
+            </div>
+
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="#" class="button">浏览其他商品</a>
+            </div>
+
+            <div class="message" style="font-size: 13px; color: #888888;">
+                如有疑问，请联系客户服务。
+            </div>
+        </div>
+
+        <div class="footer">
+            <p><strong>SnapLive</strong></p>
+            <p>客户服务：support@snaplive.com | 电话：+86-10-1234-5678</p>
+            <p style="margin-top: 15px; font-size: 11px; color: #999999;">
+                © 2025 SnapLive. 保留所有权利。
+            </p>
+        </div>
+    </div>
+</body>
+</html>
