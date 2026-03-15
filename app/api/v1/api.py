@@ -19,6 +19,7 @@ from app.api.v1.endpoints import (
     simulcast_presets,
     shipping,
     simulcasters,
+    platform_stats,
 )
 
 api_router = APIRouter()
@@ -41,3 +42,4 @@ api_router.include_router(livestream_sessions.router, prefix="/livestream-sessio
 api_router.include_router(simulcast_presets.router, prefix="/simulcast-presets", tags=["simulcast-presets"])
 api_router.include_router(shipping.router, prefix="/shipping", tags=["shipping"])
 api_router.include_router(simulcasters.router, prefix="/simulcasters", tags=["simulcasters"])
+api_router.include_router(platform_stats.router, prefix="/platform-stats", tags=["platform-stats"])

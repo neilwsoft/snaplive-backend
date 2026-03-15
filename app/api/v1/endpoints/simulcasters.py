@@ -4,7 +4,7 @@ API routes for simulcaster operations including top simulcasters leaderboard.
 """
 
 from typing import Optional
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from motor.motor_asyncio import AsyncIOMotorDatabase
 
 from app.database import get_database
@@ -12,6 +12,7 @@ from app.services.simulcaster_service import SimulcasterService
 from app.schemas.simulcaster import (
     TopSimulcastersListResponse,
     TopSimulcasterResponse,
+    SellerProfileResponse,
 )
 
 router = APIRouter()
@@ -61,3 +62,17 @@ async def get_top_simulcasters(
         page_size=page_size,
         total_pages=total_pages,
     )
+
+
+@router.get("/{seller_id}", response_model=SellerProfileResponse)
+async def get_seller_profile(
+    seller_id: str,
+    service: SimulcasterService = Depends(get_simulcaster_service),
+):
+    """
+    Get a seller's profile with aggregated stats and recent session history.
+    """
+    profile = await service.get_seller_profile(seller_id)
+    if not profile:
+        raise HTTPException(status_code=404, detail="Seller not found")
+    return SellerProfileResponse(**profile)

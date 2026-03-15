@@ -9,6 +9,17 @@ from motor.motor_asyncio import AsyncIOMotorDatabase
 from bson import ObjectId
 
 
+def _to_str(value) -> Optional[str]:
+    """Convert a value to string, handling datetime objects from MongoDB."""
+    if value is None:
+        return None
+    if isinstance(value, str):
+        return value
+    if isinstance(value, datetime):
+        return value.isoformat()
+    return str(value)
+
+
 class SimulcasterService:
     """Service for simulcaster operations"""
 
@@ -119,3 +130,103 @@ class SimulcasterService:
             enriched_data.append(enriched_item)
 
         return enriched_data, total_count
+
+    async def get_seller_profile(
+        self,
+        seller_id: str,
+        recent_sessions_limit: int = 10,
+    ) -> Optional[dict]:
+        """
+        Get a seller's profile with aggregated stats and recent sessions.
+
+        Args:
+            seller_id: The seller's user ID
+            recent_sessions_limit: Max recent sessions to return
+
+        Returns:
+            Seller profile dict or None if user not found
+        """
+        # Fetch user
+        try:
+            user = await self.users_collection.find_one({"_id": ObjectId(seller_id)})
+        except Exception:
+            return None
+
+        if not user:
+            return None
+
+        # Aggregate stats from sessions
+        stats_pipeline = [
+            {"$match": {"seller_id": seller_id, "status": {"$in": ["live", "ended"]}}},
+            {
+                "$group": {
+                    "_id": "$seller_id",
+                    "total_views": {"$sum": "$stats.total_viewers"},
+                    "total_likes": {"$sum": "$stats.reaction_count"},
+                    "total_comments": {"$sum": "$stats.message_count"},
+                    "session_count": {"$sum": 1},
+                    "categories": {"$addToSet": "$products.category"},
+                }
+            },
+        ]
+
+        stats_results = await self.sessions_collection.aggregate(stats_pipeline).to_list(None)
+        stats = stats_results[0] if stats_results else {}
+
+        # Flatten categories
+        categories = []
+        if stats.get("categories"):
+            for cat_list in stats["categories"]:
+                if isinstance(cat_list, list):
+                    categories.extend(cat_list)
+                elif cat_list:
+                    categories.append(cat_list)
+        categories = list(set(filter(None, categories)))
+
+        # Aggregate unique platforms from sessions
+        platforms_pipeline = [
+            {"$match": {"seller_id": seller_id, "status": {"$in": ["live", "ended"]}}},
+            {"$unwind": {"path": "$platforms", "preserveNullAndEmptyArrays": False}},
+            {"$group": {"_id": None, "platforms": {"$addToSet": "$platforms"}}},
+        ]
+        platforms_results = await self.sessions_collection.aggregate(platforms_pipeline).to_list(None)
+        platforms = platforms_results[0]["platforms"] if platforms_results else []
+
+        # Fetch recent sessions
+        recent_sessions_cursor = self.sessions_collection.find(
+            {"seller_id": seller_id}
+        ).sort("created_at", -1).limit(recent_sessions_limit)
+
+        recent_sessions = []
+        async for session in recent_sessions_cursor:
+            session_stats = session.get("stats", {})
+            recent_sessions.append({
+                "session_id": str(session["_id"]),
+                "title": session.get("title"),
+                "status": session.get("status", "unknown"),
+                "created_at": _to_str(session.get("created_at")),
+                "started_at": _to_str(session.get("started_at")),
+                "ended_at": _to_str(session.get("ended_at")),
+                "duration_seconds": session_stats.get("duration_seconds"),
+                "total_viewers": session_stats.get("total_viewers", 0),
+                "revenue": session_stats.get("revenue", 0.0),
+                "platforms": session.get("platforms", []),
+                "category": session.get("products", [{}])[0].get("category") if session.get("products") else None,
+            })
+
+        member_since = _to_str(user.get("created_at"))
+
+        return {
+            "seller_id": seller_id,
+            "name": user.get("full_name", "Unknown"),
+            "avatar_url": user.get("avatar_url"),
+            "verified": user.get("verified", False),
+            "member_since": member_since,
+            "platforms": platforms,
+            "total_views": stats.get("total_views", 0),
+            "total_likes": stats.get("total_likes", 0),
+            "total_comments": stats.get("total_comments", 0),
+            "categories": categories,
+            "session_count": stats.get("session_count", 0),
+            "recent_sessions": recent_sessions,
+        }
